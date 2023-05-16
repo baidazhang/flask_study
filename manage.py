@@ -5,8 +5,10 @@ from flask_script import Manager
 from flask_migrate import MigrateCommand, Migrate
 from Perfect_bbs import create_app
 from app.cms import models as cms_models
+from app.front import models as front_models
 from exts import db
 
+FrontUser = front_models.FrontUser
 CMSUser = cms_models.CMSUser
 CMSRole = cms_models.CMSRole
 CMSPermission = cms_models.CMSPermission
@@ -61,9 +63,25 @@ def add_user_to_role(email, name):
     """添加用户到某个角色"""
     user = CMSUser.query.filter_by(email=email).frist()
     if user:
-        pass
+        role = CMSRole.query.filter_by(name=name).first()
+        if role:
+            # 把用户添加到角色里面去
+            role.users.append(user)
+            db.session.commit()
+            print("用户添加角色成功")
+        else:
+            print("没有这个角色：%s" % name)
     else:
         print('%s邮箱没有这个用户' % email)
+
+@manager.command
+def test_permission():
+    """测试用户是否有xxx权限"""
+    user = CMSUser.query.frist()
+    if user.has_permission(CMSPermission.VISITOR):
+        print("这个用户有访问者权限")
+    else:
+        print("这个用户没有访问者权限")
 
 
 if __name__ == '__main__':

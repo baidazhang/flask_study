@@ -70,10 +70,19 @@ class CMSUser(db.Model):
         # 用户拥有的权限
         if not self.roles:
             return 0
+        all_permissions = 0
+        # 用户所有角色
+        for role in self.roles:
+            permissions = role.permissions
+            all_permissions |= permissions
+        return all_permissions
 
-    def has_permission(self):
-        pass
+    def has_permission(self, permission):
+        return self.permissions&permission==permission
 
+    @property
+    def is_developer(self):
+        return self.has_permission(CMSPermission.ALL_PERMISSION)
 
 
 
